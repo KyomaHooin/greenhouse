@@ -6,7 +6,7 @@
 
 const int CH[3] = {A0,A1,A3};      // N-MOSFET channels signal pin
 const int T[3] = {6,7,8};          // touch sensor signal pin
-const int PRODLEVA_TOUCH = 10000;  // 10s touch press delay
+const int PRODLEVA_TOUCH = 15000;  // 15s touch press delay
 
 //VAR
 
