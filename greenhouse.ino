@@ -4,15 +4,16 @@
 
 //CONST
 
-const int CH[4] = {A0,A1,A3};    // N-MOSFET channels
-const int T[3] = {2,3,4};        // Touch sensor.
-const int PRODLEVA_TOUCH = 5000; // 5s prodleva detekce stisku.
+const int CH[4] = {A0,A1,A3};      // N-MOSFET channels signal pin
+const int T[3] = {6,7,8};          // Touch sensor singnal pin
+const int PRODLEVA_TOUCH = 10000;  // 10 touch press delay
 
 //VAR
 
-long touchTime;                  // Timers.
+long touchTime[3] = {0,0,0};       // Timer
 
 //SETUP
+
 void setup() {
   //Debug
   Serial.begin(9600);
@@ -22,47 +23,31 @@ void setup() {
     pinMode(CH[i], OUTPUT);
     digitalWrite(CH[i], LOW);
   }
-  //Touch counter setup.
-  //touchTime = millis();
-  }
-//MAIN
-void loop() {
- //touch solving
-// for (int i = 0; i < 3; i++) {
- if ( millis() - touchTime > PRODLEVA_TOUCH ) {
-   if ( digitalRead(T[0]) == HIGH && digitalRead(CH[0]) == LOW ) {
-     Serial.print("Touch! ");
-     Serial.print(digitalRead(T[0]));
-     Serial.print(" millis: ");
-     Serial.print(millis());
-     Serial.print(" counter: ");
-     Serial.print(touchTime);
-     Serial.print(" diff: ");
-     Serial.println(millis() - touchTime);
-     digitalWrite(CH[0],HIGH);
-     touchTime = millis();
-   }
- }
- if ( millis() - touchTime > PRODLEVA_TOUCH ) {
-   if ( digitalRead(T[0]) == HIGH && digitalRead(CH[0]) == HIGH ) {
-     Serial.print("Touch! ");
-     Serial.print(digitalRead(T[0]));
-     Serial.print(" millis: ");
-     Serial.print(millis());
-     Serial.print(" counter: ");
-     Serial.print(touchTime);
-     Serial.print(" diff: ");
-     Serial.println(millis() - touchTime);
-     digitalWrite(CH[0], LOW);
-     touchTime = millis();
-   }
- }
-//  for (int i = 0; i < 4; i++) {
-//    digitalWrite(CH[i], LOW);
-//  }
-//  delay(10000);
-//  for (int i = 0; i < 4; i++) {
-//    digitalWrite(CH[i], HIGH);
-//  }
-//  delay(2000);
 }
+
+//MAIN
+
+void loop() {
+  //touch solving
+  for (int i = 0; i < 3; i++) {
+    if ( millis() - touchTime[i] > PRODLEVA_TOUCH ) {
+      if ( digitalRead(T[i]) == HIGH && digitalRead(CH[i]) == LOW ) {
+        Serial.print("Touch! [");
+        Serial.print(i);
+        Serial.println("] ON");
+        digitalWrite(CH[i],HIGH);
+        touchTime[i] = millis();
+      }
+    }
+    if ( millis() - touchTime[i] > PRODLEVA_TOUCH ) {
+      if ( digitalRead(T[i]) == HIGH && digitalRead(CH[i]) == HIGH ) {
+        Serial.print("Touch! [");
+        Serial.print(i);
+        Serial.println("] OFF");
+        digitalWrite(CH[i], LOW);
+        touchTime[i] = millis();
+      }
+    }
+  }
+}
+
