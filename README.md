@@ -7,6 +7,8 @@ FILE
 
 <pre>
  greenhouse.ino - Main program.
+      touch.ino - TP223 test code.
+	fet.ino - MOSFET test code.
 </pre>
 
 CONTACT
