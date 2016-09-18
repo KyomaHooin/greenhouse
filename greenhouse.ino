@@ -5,13 +5,13 @@
 #include <Adafruit_GFX.h>
 #include <MCUFRIEND_kbv.h>
 #include "TouchScreen.h"
-
-//VAR
+#include </root/avr/greenhouse/logo.h>
 
 //TFT instance
 MCUFRIEND_kbv tft;
 //Touch instance
 TouchScreen ts = TouchScreen(9, A2, A3, 8, 300);
+TSPoint tp;
 //CONST/VAR
 const uint16_t ID = 0x9325;// TFT ID
 //const int CH[3] = {A0,A1,A2};      // IRF540N signal pin
@@ -20,9 +20,12 @@ const int CH = A5;                   // IRF540N signal pin
 const int T = 10;                    // TP223 signal pin
 //Delay
 const int DELAY_TOUCH = 15000;    // 15s touch press
-const int DELAY_SCREEN = 100;     // 10ms screen press
+const int DELAY_NOTOUCH = 20000;    // 20s  no TFT touch
+const int DELAY_PRESS = 100;     // 10ms screen press
 //Timer
-long touchTime, screenTime, fadeTime[3];
+long touchTime,notouchTime, screenTime, fadeTime[3];
+//Screen token
+bool iniToken = 1;
 
 //SETUP
 
@@ -42,10 +45,7 @@ void setup() {
   tft.reset();
   tft.begin(ID);
   tft.setRotation(1);// LANDSCAPE
-  tft.fillScreen(0x0000);// BLACK
-  tft.setCursor(110, 110);
-  tft.setTextSize(2);
-  tft.println("DEMO CODE");
+  drawLogo();
 }
 
 //MAIN
@@ -62,19 +62,38 @@ void loop() {
       touchTime = millis();
     }
   //}
+
   //SCREEN
-  if ( millis() - screenTime > DELAY_SCREEN ) {
+  if ( millis() - screenTime > DELAY_PRESS ) {
     //ScreenTouch coord.
-    TSPoint p = ts.getPoint(); //p.x p.y //p.z
-    if (p.z > ts.pressureThreshhold) {
-      Serial.print("x: "); Serial.print(p.x);
-      Serial.print(" y: "); Serial.print(p.y);
-      Serial.print(" z: "); Serial.println(p.z);
+    tp = ts.getPoint(); //p.x p.y //p.z
+    // SCREENSAVER TOUCH
+    if (400 < tp.x && tp.x < 735 && 505 < tp.y && tp.y < 610 && tp.z > ts.pressureThreshhold && iniToken == 1) {
+      iniToken = 0;
+      fixPin();
+      //default screen
+      tft.fillScreen(0x0000);// crlscr      
+      drawChannel(0);
+      drawChannel(1);
+      drawChannel(2);
+      drawFaderBar();
     }
+    //CHANNEL TOUCH
+    
+    //ONOFF TOUCH
+    
+    //FADER TOUCH
+    //Serial.print("x: "); Serial.print(p.x);
+    //Serial.print(" y: "); Serial.print(p.y);
+    //Serial.print(" z: "); Serial.println(p.z);
+    //Serial.println("Touch!");
     //reset timer
     screenTime = millis();
   }
-  //softPWM
+
+  //SCREENSAVER
+  
+  //PWM
   //for (int f = 1; f < 254; f++) {
   //  softPWM(CH[0], f , 20);// freq, speed
   //}
@@ -83,6 +102,51 @@ void loop() {
   //}
 }
 
+void fixPin() {
+  pinMode(A2, OUTPUT);
+  pinMode(A3, OUTPUT);
+  pinMode(8, OUTPUT);
+  pinMode(9, OUTPUT);
+}
+
+void drawChannel(int chn) {
+ tft.drawRect(15 + chn * 100, 10, 90, 90, 0xFFFF);// CH0
+ tft.drawRect(16 + chn * 100, 11, 88, 88, 0xFFFF);
+ tft.fillRect(17 + chn * 100, 12, 86, 86, 0x001F); //blue
+ tft.setCursor(35 + chn * 100, 45);
+ tft.setTextSize(3);
+ tft.print("CH");
+ tft.println(chn);
+ tft.drawRect(15 + chn * 100, 110, 40, 40, 0xFFFF);
+ tft.drawRect(16 + chn * 100, 111, 38, 38, 0xFFFF);
+ tft.drawRect(65 + chn * 100, 110, 40, 40, 0xFFFF);
+ tft.drawRect(66 + chn * 100, 111, 38, 38, 0xFFFF);
+ tft.setCursor(24 + chn * 100, 123);
+ tft.setTextSize(2);
+ tft.println("ON");
+ tft.setCursor(68 + chn * 100, 123);
+ tft.setTextSize(2);
+ tft.println("OFF");
+}
+
+void drawFaderBar() {
+ tft.drawRect(15,180,294,15, 0xFFFF);// LINE
+ tft.drawRect(16,181,292,13, 0xFFFF);
+}
+
+void drawFader() {
+ tft.drawRect(25,175,35,25, 0xFFFF);// FADER
+ tft.drawRect(26,176,33,23, 0xFFFF);
+ tft.fillRect(27,177,31,21, 0xF800);// red
+}
+
+void drawLogo() {
+  tft.fillScreen(0x0000);// BLACK
+  tft.setCursor(100, 115);
+  tft.setTextSize(2);
+  tft.println("TOUCH HERE");
+  tft.drawRect(90, 105, 140, 35, 0xFFFF);
+}
 //void softPWM(int pin, int freq, int spd) {
 //  digitalWrite(pin,HIGH);
 //  delayMicroseconds(spd*freq);
