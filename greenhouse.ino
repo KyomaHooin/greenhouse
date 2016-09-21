@@ -1,22 +1,27 @@
-//
+
 // 2.4 TFT LCD touch "Hothouse" light control 
 //
+// TODO:
+//
+// double touch ?
+// bitmap ?
 
 #include <Adafruit_GFX.h>
 #include <MCUFRIEND_kbv.h>
 #include "TouchScreen.h"
 #include <EEPROM.h>
-
-//#include </root/avr/greenhouse/logo.h>
+#include </root/avr/greenhouse/openhard.h>
 
 #define BLACK   0x0000
 #define WHITE   0xFFFF
-#define GREY    0x7BEF
 #define RED     0xF800
 #define GREEN   0x07E0
+#define ORANGE  0xFD20
+#define YELLOW  0xFFE0
 
 #define MINPRESS 20
 #define MAXPRESS 1000
+
 //TFT instance
 MCUFRIEND_kbv tft;
 //TouchScreen instance
@@ -27,17 +32,18 @@ TSPoint tp;
 //CONST/VAR
 
 const uint16_t ID = 0x9325;     // TFT ID
-const int CH[2] = {A5,12};      // IRF540N signal pin
+const int CH[2] = {A5};      // IRF540N signal pin
 const int T[2] = {10,11};       // TP223 signal pin
 
 const int DELAY_TOUCH = 15000;    // 15s touch press
-const int DELAY_NOTOUCH = 20000;  // 20s  no TFT touch
-const int DELAY_PRESS = 100;      // 10ms screen press
+const int DELAY_NOTOUCH = 30000;  // 30s  no TFT touch
+const int DELAY_PRESS = 100;      // 100ms screen press
 
 long touchTime[2], fadeTime[2], notouchTime, screenTime; //Timers
 
-bool Token = 1;               // Screen token
-bool TMODE[2];                  // TP223 on/off status
+bool Token = 1;                 // Screen level token
+bool TMODE[2];                  // TP223 on/off status -> char
+bool CHMODE[2];                 // channel select status
 
 //SETUP
 
@@ -49,7 +55,7 @@ void setup() {
     pinMode(T[i],INPUT);
     pinMode(CH[i],OUTPUT);
     digitalWrite(CH[i],LOW);
-    TMODE[i] = EEPROM.read(i);
+    //TMODE[i] = EEPROM.read(i);
   }
   //TFT
   tft.reset();
@@ -65,6 +71,8 @@ void loop() {
   for (int i = 0; i < 2; i++) {
     if ( millis() - touchTime[i] > DELAY_TOUCH && digitalRead(T[i]) == HIGH ) {
       if (digitalRead(CH[i])) { digitalWrite(CH[i],LOW); TMODE[i] = 0; } else { digitalWrite(CH[i],HIGH); TMODE[i] = 255; }
+      //Update menu
+      if (Token == 0 ) { fixPin(); colorOnoff(); }
       //reset timer
       touchTime[i] = millis();
     }
@@ -73,25 +81,30 @@ void loop() {
   //SCREEN
   if ( millis() - screenTime > DELAY_PRESS ) {
     //ScreenTouch coord.
-    tp = ts.getPoint(); //p.x p.y //p.z
+    tp = ts.getPoint();
     // SCREENSAVER TOUCH
-    if (400 < tp.x && tp.x < 735 && 505 < tp.y && tp.y < 610 && tp.z > MINPRESS && tp.z < MAXPRESS && Token == 1) {
-      Token = 0;
-      fixPin();
-      tft.fillScreen(0x0000);// crlscr      
-      drawChannel();
-      colorOnoff();
-      drawFaderBar();
-      drawFader();
-    }
-    //CHANNEL TOUCH
-    //ONOFF TOUCH    
+    if ( tp.z > MINPRESS && tp.z < MAXPRESS && Token ) { Token = 0; drawMenu(); } // MENU
+    //CH0 TOUCH
+    if (595 < tp.x && tp.x < 800 && 245 < tp.y && tp.y < 495 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token ) {
+      CHMODE[0] = 1; fixPin(); colorChann();
+     }
+    //CH0 TOUCH     
+    if (350 < tp.x && tp.x < 535 && 245 < tp.y && tp.y < 495 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token ) {
+      CHMODE[1] = 1; fixPin(); colorChann();
+     }
+    //ONOFF TOUCH
     //FADER TOUCH
+    
     //RESET
     if (tp.z > MINPRESS && tp.z < MAXPRESS) {// catch sharing pin..
       Serial.print("x: "); Serial.print(tp.x);
       Serial.print(" y: "); Serial.print(tp.y);
       Serial.print(" z: "); Serial.println(tp.z);
+      
+      //CH0
+      // x 540 360 540 350 
+      // y 250 250 500 495
+      
       //reset timer
       screenTime = millis();
     }
@@ -107,6 +120,8 @@ void loop() {
   //}
 }
 
+//FUNC
+
 void fixPin() {
   pinMode(A2, OUTPUT);
   pinMode(A3, OUTPUT);
@@ -121,8 +136,7 @@ void drawChannel() {
     tft.setCursor(85 + i * 100, 55);
     tft.setTextSize(3);
     tft.print("CH");
-    tft.println(i);
-    
+    tft.println(i);   
     tft.drawRect(65 + i * 100, 120, 40, 40, WHITE);
     tft.drawRect(66 + i * 100, 121, 38, 38, WHITE);
     tft.drawRect(115 + i * 100, 120, 40, 40, WHITE);
@@ -147,12 +161,28 @@ void drawFader() {
  tft.fillRect(77,177,31,21, BLACK);
 }
 
+void colorChann() {
+  for (int i = 0; i < 2; i++) {
+    if (CHMODE[i]) {
+      tft.drawRect(65 + i * 100, 20, 90, 90, YELLOW);
+      tft.drawRect(66 + i * 100, 21, 88, 88, YELLOW);
+    } else {
+      tft.drawRect(65 + i * 100, 20, 90, 90, WHITE);
+      tft.drawRect(66 + i * 100, 21, 88, 88, WHITE);
+    }
+  }
+}
+
 void colorOnoff() {
   for (int i = 0; i < 2; i++) {
     if (TMODE[i]) {
       tft.drawRect(65 + i * 100, 120, 40, 40, GREEN);
       tft.drawRect(66 + i * 100, 121, 38, 38, GREEN);
+      tft.drawRect(115 + i * 100, 120, 40, 40, WHITE);
+      tft.drawRect(116 + i * 100, 121, 38, 38, WHITE);
     } else {
+      tft.drawRect(65 + i * 100, 120, 40, 40, WHITE);
+      tft.drawRect(66 + i * 100, 121, 38, 38, WHITE);
       tft.drawRect(115 + i * 100, 120, 40, 40, RED);
       tft.drawRect(116 + i * 100, 121, 38, 38, RED);
     }
@@ -161,11 +191,23 @@ void colorOnoff() {
 
 void drawLogo() {
   tft.fillScreen(BLACK);
-  tft.setCursor(100, 115);
-  tft.setTextSize(2);
-  tft.println("TOUCH HERE");
-  tft.drawRect(90, 105, 140, 35, WHITE);
-  tft.drawRect(91, 106, 138, 33, WHITE);
+  //draw PROGMEM 16bit color img pixel by pixel..
+  int k = 0;
+  for (int i=0; i < 64; i++) {
+    for (int j=0; j < 64; j++) {
+      tft.drawPixel(125 + j, 85 + i, pgm_read_word(&openhard[k]));
+      k++;
+    }
+  }
+}
+
+void drawMenu() {
+  fixPin();
+  tft.fillScreen(BLACK);
+  drawChannel();
+  colorOnoff();
+  drawFaderBar();
+  drawFader();
 }
 
 void softPWM(int pin, int freq, int spd) {
