@@ -31,19 +31,22 @@ TSPoint tp;
 
 //CONST/VAR
 
-const uint16_t ID = 0x9325;     // TFT ID
-const int CH[2] = {A5};      // IRF540N signal pin
-const int T[2] = {10,11};       // TP223 signal pin
+const uint16_t ID = 0x9325;       // TFT ID
 
-const int DELAY_TOUCH = 15000;    // 15s touch press
+const int T[2] = {10,11};         // TP223 signal pin
+const int CH[2] = {A5};           // IRF540N signal pin
+
 const int DELAY_NOTOUCH = 30000;  // 30s  no TFT touch
+const int DELAY_SENSOR = 15000;   // 15s sensor touch press
 const int DELAY_PRESS = 100;      // 100ms screen press
+const int DELAY_MENU = 1000;      // 500ms screen press
 
-long touchTime[2], fadeTime[2], notouchTime, screenTime; //Timers
+long touchTime[2], fadeTime[2], menuTime, screenTime; //timer
 
-bool Token = 1;                 // Screen level token
-bool TMODE[2];                  // TP223 on/off status -> char
-bool CHMODE[2];                 // channel select status
+bool TMODE[2];                    //TP223 on/off status
+bool CHMODE[2];                   //channel select status
+bool PWMODE[2];                   //channel PWM status
+bool Token = 1;                   //screen level token
 
 //SETUP
 
@@ -69,7 +72,7 @@ void setup() {
 void loop() {
   //TOUCH
   for (int i = 0; i < 2; i++) {
-    if ( millis() - touchTime[i] > DELAY_TOUCH && digitalRead(T[i]) == HIGH ) {
+    if ( millis() - touchTime[i] > DELAY_SENSOR && digitalRead(T[i]) == HIGH ) {
       if (digitalRead(CH[i])) { digitalWrite(CH[i],LOW); TMODE[i] = 0; } else { digitalWrite(CH[i],HIGH); TMODE[i] = 255; }
       //Update menu
       if (Token == 0 ) { fixPin(); colorOnoff(); }
@@ -82,35 +85,33 @@ void loop() {
   if ( millis() - screenTime > DELAY_PRESS ) {
     //ScreenTouch coord.
     tp = ts.getPoint();
-    // SCREENSAVER TOUCH
-    if ( tp.z > MINPRESS && tp.z < MAXPRESS && Token ) { Token = 0; drawMenu(); } // MENU
-    //CH0 TOUCH
-    if (595 < tp.x && tp.x < 800 && 245 < tp.y && tp.y < 495 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token ) {
-      CHMODE[0] = 1; fixPin(); colorChann();
-     }
-    //CH0 TOUCH     
-    if (350 < tp.x && tp.x < 535 && 245 < tp.y && tp.y < 495 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token ) {
-      CHMODE[1] = 1; fixPin(); colorChann();
-     }
+    // MENU
+    if ( tp.z > MINPRESS && tp.z < MAXPRESS && Token ) { Token = 0; drawMenu(); menuTime = millis(); }
+    //CHANNEL
+    if (millis() - menuTime > DELAY_MENU) {
+      //CH0 TOUCH
+      if (595 < tp.x && tp.x < 800 && 245 < tp.y && tp.y < 495 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token ) {
+        CHMODE[0] = 1; CHMODE[1] = 0; fixPin(); colorChann();
+       }
+      //CH2 TOUCH     
+      if (350 < tp.x && tp.x < 535 && 245 < tp.y && tp.y < 495 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token ) {
+        CHMODE[1] = 1; CHMODE[0] = 0; fixPin(); colorChann();
+      }
+    }
     //ONOFF TOUCH
     //FADER TOUCH
-    
     //RESET
     if (tp.z > MINPRESS && tp.z < MAXPRESS) {// catch sharing pin..
       Serial.print("x: "); Serial.print(tp.x);
       Serial.print(" y: "); Serial.print(tp.y);
       Serial.print(" z: "); Serial.println(tp.z);
       
-      //CH0
-      // x 540 360 540 350 
-      // y 250 250 500 495
-      
       //reset timer
       screenTime = millis();
     }
   }
   //SCREENSAVER
-  if ( millis() - screenTime > DELAY_NOTOUCH && Token == 0 ) { fixPin(); drawLogo(); Token = 1; }
+  if ( millis() - screenTime > DELAY_NOTOUCH && Token == 0 ) { CHMODE[0]= 0; CHMODE[1] = 0; fixPin(); drawLogo(); Token = 1; }
   //PWM
   //for (int f = 1; f < 254; f++) {
   //  softPWM(CH[0], f , 20);// freq, speed
@@ -122,32 +123,13 @@ void loop() {
 
 //FUNC
 
-void fixPin() {
-  pinMode(A2, OUTPUT);
-  pinMode(A3, OUTPUT);
-  pinMode(8, OUTPUT);
-  pinMode(9, OUTPUT);
-}
-
-void drawChannel() {
-  for (int i = 0; i < 2; i++) {
-    tft.drawRect(65 + i * 100, 20, 90, 90, WHITE);
-    tft.drawRect(66 + i * 100, 21, 88, 88, WHITE);
-    tft.setCursor(85 + i * 100, 55);
-    tft.setTextSize(3);
-    tft.print("CH");
-    tft.println(i);   
-    tft.drawRect(65 + i * 100, 120, 40, 40, WHITE);
-    tft.drawRect(66 + i * 100, 121, 38, 38, WHITE);
-    tft.drawRect(115 + i * 100, 120, 40, 40, WHITE);
-    tft.drawRect(116 + i * 100, 121, 38, 38, WHITE);
-    tft.setCursor(74 + i * 100, 133);
-    tft.setTextSize(2);
-    tft.println("ON");
-    tft.setCursor(118 + i * 100, 133);
-    tft.setTextSize(2);
-    tft.println("OFF");
-  }
+void drawMenu() {
+  fixPin();
+  tft.fillScreen(BLACK);
+  colorChann();
+  colorOnoff();
+  drawFaderBar();
+  drawFader();
 }
 
 void drawFaderBar() {
@@ -170,6 +152,10 @@ void colorChann() {
       tft.drawRect(65 + i * 100, 20, 90, 90, WHITE);
       tft.drawRect(66 + i * 100, 21, 88, 88, WHITE);
     }
+    tft.setCursor(85 + i * 100, 55);
+    tft.setTextSize(3);
+    tft.print("CH");
+    tft.println(i);   
   }
 }
 
@@ -186,6 +172,12 @@ void colorOnoff() {
       tft.drawRect(115 + i * 100, 120, 40, 40, RED);
       tft.drawRect(116 + i * 100, 121, 38, 38, RED);
     }
+    tft.setCursor(74 + i * 100, 133);
+    tft.setTextSize(2);
+    tft.println("ON");
+    tft.setCursor(118 + i * 100, 133);
+    tft.setTextSize(2);
+    tft.println("OFF");
   }
 }
 
@@ -195,21 +187,24 @@ void drawLogo() {
   int k = 0;
   for (int i=0; i < 64; i++) {
     for (int j=0; j < 64; j++) {
-      tft.drawPixel(125 + j, 85 + i, pgm_read_word(&openhard[k]));
+      tft.drawPixel(130 + j, 85 + i, pgm_read_word(&openhard[k]));
       k++;
     }
   }
+  tft.setCursor(100, 160);
+  tft.setTextSize(1);
+  tft.println("GREENHOUSE SYSTEM Ltd.");
 }
 
-void drawMenu() {
-  fixPin();
-  tft.fillScreen(BLACK);
-  drawChannel();
-  colorOnoff();
-  drawFaderBar();
-  drawFader();
+//TFT/Touch sharing pins reset
+void fixPin() {
+  pinMode(A2, OUTPUT);
+  pinMode(A3, OUTPUT);
+  pinMode(8, OUTPUT);
+  pinMode(9, OUTPUT);
 }
 
+//Software PWM wave
 void softPWM(int pin, int freq, int spd) {
   digitalWrite(pin,HIGH);
   delayMicroseconds(spd*freq);
