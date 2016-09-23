@@ -3,6 +3,46 @@ DESCRIPTION
 
 Automatic "greenhouse" light system.
 
+NOTEBOOK
+
+<pre>
+UNO R3:
+
+ -USB B
+ -PWM 3,5,6,9,10,11
+ -74HC595 + SPI + ShiftPWM
+ -CD4021B + SPIN + ShiftIn
+
+ILI9325:
+
+ -240x320 ID 0x9325
+ -PROGMEM 8-bit bitmap / 16-bit "565" bitmap
+ -Touch pinout
+
+  #define YP A2
+  #define XM A3
+  #define YM 8
+  #define XP 9
+
+ -"shared pins" => reset(OUTPUT)
+
+TTP223:
+
+ -5V board = 5V logic
+ -15s press duration
+ -high sensitivity
+
+Sensor shield v4.0:
+
+ -AO..A5 = SVG
+
+IRF540N:
+
+ -Servo cable => 3x1 BLS/PLS
+ -9-12V min.
+ -DC only
+</pre>
+
 FILE
 
 <pre>
