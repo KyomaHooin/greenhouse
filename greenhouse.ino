@@ -1,7 +1,5 @@
-
-// 2.4 TFT LCD touch "Greenhouse" light control 
 //
-//TODO: SPI shift registers ,EEPROM config
+// 2.4 TFT LCD touch "Greenhouse" light control 
 //
 
 #include </root/avr/greenhouse/openhard.h>
@@ -83,7 +81,7 @@ void loop() {
       if (595 < tp.x && tp.x < 800 && 245 < tp.y && tp.y < 495 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token ) {
         CHMODE[0] = 1; CHMODE[1] = 0; fixPin(); colorChann();
       }
-      //CH2 TOUCH     
+      //CH1 TOUCH     
       if (350 < tp.x && tp.x < 535 && 245 < tp.y && tp.y < 495 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token ) {
         CHMODE[1] = 1; CHMODE[0] = 0; fixPin(); colorChann();
       }
@@ -132,7 +130,7 @@ void drawMenu() {
   colorOnoff();
   drawFader();
 }
-//Fader
+//Fader bar
 void drawFader() {
  tft.drawRect(65,170,40,40, WHITE);// [-]
  tft.drawRect(66,171,38,38, WHITE);
@@ -192,7 +190,7 @@ void colorOnoff() {
 //Bitmap PROGMEM logo
 void drawLogo() {
   tft.fillScreen(BLACK);
-  //draw PROGMEM 16bit color img pixel by pixel..
+  //draw PROGMEM 16-bit color pixel by pixel..
   int k = 0;
   for (int i=0; i < 64; i++) {
     for (int j=0; j < 64; j++) {
