@@ -1,9 +1,9 @@
 
 DESCRIPTION
 
-Automatic "greenhouse" light system.
+Automatic "Greenhouse" light system.
 
-NOTEBOOK
+NOTE
 
 <pre>
 UNO R3:
@@ -38,7 +38,7 @@ Sensor shield v4.0:
 
 IRF540N:
 
- -Servo cable => 3x1 BLS/PLS
+ -servo cable => 3x1 BLS/PLS
  -9-12V min.
  -DC only
 </pre>
