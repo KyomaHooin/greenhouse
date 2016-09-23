@@ -13,7 +13,7 @@ UNO R3:
  -USB B
  -PWM 3,5,6,9,10,11
  -74HC595 + SPI + ShiftPWM
- -CD4021B + SPIN + ShiftIn
+ -CD4021B + SPI + ShiftIn
 
 ILI9325:
 
