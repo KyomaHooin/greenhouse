@@ -1,18 +1,18 @@
 
-// 2.4 TFT LCD touch "Hothouse" light control 
+// 2.4 TFT LCD touch "Greenhouse" light control 
+//
+//TODO: SPI shift registers ,EEPROM config
 //
 
 #include </root/avr/greenhouse/openhard.h>
 #include <MCUFRIEND_kbv.h>
 #include <Adafruit_GFX.h>
 #include "TouchScreen.h"
-#include <EEPROM.h>
 
 #define BLACK   0x0000
 #define WHITE   0xFFFF
 #define RED     0xF800
 #define GREEN   0x07E0
-#define ORANGE  0xFD20
 #define YELLOW  0xFFE0
 
 #define MINPRESS 20
@@ -36,21 +36,20 @@ const int DELAY_PRESS = 100;// 100ms general screen press
 const int DELAY_MENU = 1000;// 1s menu press
 
 long touchTime[2], fadeTime[2], menuTime, screenTime;// timer
-bool TMODE[2], CHMODE[2], PWMODE[2];// TP223 on/off, channel, PWM status
+
+bool TMODE[2], CHMODE[2];// TP223 on/off, channel,
+int PWMODE[2];// PWM level
+
 bool Token = 1;// screen level token
 
 //SETUP
 
 void setup() {
-  //DEBUG
-  Serial.begin(9600);
   //TOUCH/FET
   for (int i = 0; i < 2; i++) {
     pinMode(T[i],INPUT);
     pinMode(CH[i],OUTPUT);
     digitalWrite(CH[i],LOW);
-    //TMODE[i] = EEPROM.read(i);
-    //PWMODE[i] = EEPROM.read(i + 2);
   }
   //TFT
   tft.reset();
@@ -65,7 +64,7 @@ void loop() {
   //SENSOR
   for (int i = 0; i < 2; i++) {
     if ( millis() - touchTime[i] > DELAY_SENSOR && digitalRead(T[i]) == HIGH ) {
-      if (digitalRead(CH[i])) { digitalWrite(CH[i],LOW); TMODE[i] = 0; } else { digitalWrite(CH[i],HIGH); TMODE[i] = 1; }
+      if (digitalRead(CH[i])) { digitalWrite(CH[i],LOW); TMODE[i] = 0; } else { digitalWrite(CH[i],HIGH); TMODE[i] = 1; PWMODE[i] = 255; }
       //Update menu
       if (Token == 0 ) { fixPin(); colorOnoff(); }
       //reset timer
@@ -83,7 +82,7 @@ void loop() {
       //CH0 TOUCH
       if (595 < tp.x && tp.x < 800 && 245 < tp.y && tp.y < 495 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token ) {
         CHMODE[0] = 1; CHMODE[1] = 0; fixPin(); colorChann();
-       }
+      }
       //CH2 TOUCH     
       if (350 < tp.x && tp.x < 535 && 245 < tp.y && tp.y < 495 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token ) {
         CHMODE[1] = 1; CHMODE[0] = 0; fixPin(); colorChann();
@@ -91,25 +90,33 @@ void loop() {
     }
     //ON-OFF TOUCH
     if (715 < tp.x && tp.x < 770 && 560 < tp.y && tp.y < 645 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token) {// CH0 ON
-      if (CHMODE[0] == 1 && TMODE[0] == 0) { digitalWrite(CH[0],HIGH); TMODE[0] = 1; fixPin(); colorOnoff(); }
+      if (CHMODE[0] == 1 && TMODE[0] == 0) { digitalWrite(CH[0],HIGH); TMODE[0] = 1; PWMODE[0] = 255; fixPin(); colorOnoff(); }
     }
     if (595 < tp.x && tp.x < 650 && 560 < tp.y && tp.y < 645 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token) {// CH0 OFF
       if (CHMODE[0] == 1 && TMODE[0] == 1) { digitalWrite(CH[0],LOW); TMODE[0] = 0; fixPin(); colorOnoff(); }
     }
     if (465 < tp.x && tp.x < 530 && 560 < tp.y && tp.y < 645 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token) {// CH1 ON
-      if (CHMODE[1] == 1 && TMODE[1] == 0) { digitalWrite(CH[1],HIGH); TMODE[1] = 1; fixPin(); colorOnoff(); }
+      if (CHMODE[1] == 1 && TMODE[1] == 0) { digitalWrite(CH[1],HIGH); TMODE[1] = 1; PWMODE[1] = 255; fixPin(); colorOnoff(); }
     }
     if (345 < tp.x && tp.x < 410 && 560 < tp.y && tp.y < 645 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token) {// CH1 OFF
       if (CHMODE[1] == 1 && TMODE[1] == 1) { digitalWrite(CH[1],LOW); TMODE[1] = 0; fixPin(); colorOnoff(); }
     }
     //FADER TOUCH
     if (710 < tp.x && tp.x < 780 && 725 < tp.y && tp.y < 810 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token) {// FADE-
-      if ((CHMODE[0] == 1 && TMODE[0] == 1) || (CHMODE[1] == 1 && TMODE[1] == 1)) { Serial.println("Fade-!"); }
+      for (int i = 0; i < 2; i++) {
+        if (CHMODE[i] == 1 && TMODE[i] == 1) {
+          if (5 < PWMODE[i] && PWMODE[i] <= 255) { PWMODE[i] -= 5; analogWrite(CH[i], PWMODE[i]); }
+        }
+      }
     }
     if (345 < tp.x && tp.x < 405 && 725 < tp.y && tp.y < 810 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token) {// FADE+
-      if ((CHMODE[0] == 1 && TMODE[0] == 1)||(CHMODE[1] == 1 && TMODE[1] == 1)) { Serial.println("Fade+!"); }
+      for (int i = 0; i < 2; i++) {
+        if (CHMODE[i] == 1 && TMODE[i] == 1) {
+          if ( 5 <= PWMODE[i] && PWMODE[i] < 255) { PWMODE[i] += 5; analogWrite(CH[i], PWMODE[i]); }
+        }
+      }
     }
-    //RESET
+    //UPDATE
     if (tp.z > MINPRESS && tp.z < MAXPRESS) { screenTime = millis(); }
   }
   //SCREENSAVER
@@ -117,7 +124,7 @@ void loop() {
 }
 
 //FUNC
-
+//Menu
 void drawMenu() {
   fixPin();
   tft.fillScreen(BLACK);
@@ -197,27 +204,11 @@ void drawLogo() {
   tft.setTextSize(1);
   tft.println("GREENHOUSE SYSTEM Ltd.");
 }
-//TFT/Touch sharing pins reset
+//TFT-Touch sharing pins reset
 void fixPin() {
   pinMode(A2, OUTPUT);
   pinMode(A3, OUTPUT);
   pinMode(8, OUTPUT);
   pinMode(9, OUTPUT);
-}
-//PWM fading..
-void pwm() {
- for (int f = 1; f < 254; f++) {
-   softPWM(CH[0], f , 20);// freq, speed
-  }
-  for (int f = 254; f >  1; f--) {
-    softPWM(CH[0], f, 20);// freq, speed
-  }
-}
-//Software PWM wave
-void softPWM(int pin, int freq, int spd) {
-  digitalWrite(pin,HIGH);
-  delayMicroseconds(spd*freq);
-  digitalWrite(pin,LOW);
-  delayMicroseconds(spd*(255-freq));
 }
 
