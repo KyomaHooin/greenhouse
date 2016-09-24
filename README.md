@@ -21,10 +21,10 @@ ILI9325:
  -PROGMEM 8-bit bitmap / 16-bit "565" bitmap
  -Touch pinout
 
-  #define YP A2
-  #define XM A3
-  #define YM 8
-  #define XP 9
+  YP A2
+  XM A3
+  YM 8
+  XP 9
 
  -"shared pins" => reset(OUTPUT)
 
