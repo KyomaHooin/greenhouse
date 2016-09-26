@@ -33,7 +33,7 @@ const int DELAY_SENSOR = 15000;// 15s sensor touch press
 const int DELAY_PRESS = 100;// 100ms general screen press
 const int DELAY_MENU = 1000;// 1s menu press
 
-long touchTime[2], fadeTime[2], menuTime, screenTime;// timer
+long touchTime[2], menuTime, screenTime;// timer
 
 bool TMODE[2], CHMODE[2];// TP223 on/off, channel,
 int PWMODE[2];// PWM level
