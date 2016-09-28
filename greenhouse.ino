@@ -31,7 +31,7 @@ const int CH[2] = {A5};// IRF540N signal pin
 const unsigned int DELAY_NOTOUCH = 60000;// 1m no TFT touch
 const int DELAY_SENSOR = 15000;// 15s sensor touch press
 const int DELAY_PRESS = 100;// 100ms general screen press
-const int DELAY_MENU = 1000;// 1s menu press
+const int DELAY_MENU = 1000;// 1s menu "cross"-press
 
 long touchTime[2], menuTime, screenTime;// timer
 
@@ -71,22 +71,22 @@ void loop() {
   }
   //SCREEN
   if ( millis() - screenTime > DELAY_PRESS ) {
-    tp = ts.getPoint();//ScreenTouch coord.
+    tp = ts.getPoint();// ScreenTouch coord.
     // MENU
     if ( tp.z > MINPRESS && tp.z < MAXPRESS && Token ) { Token = 0; drawMenu(); menuTime = millis(); }
-    //CHANNEL
+    //CHANNEL TOUCH
     if (millis() - menuTime > DELAY_MENU) {
-      if (595 < tp.x && tp.x < 800 && 245 < tp.y && tp.y < 495 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token ) {//CH0
+      if (595 < tp.x && tp.x < 800 && 245 < tp.y && tp.y < 495 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token ) {// CH0 TOUCH
         CHMODE[0] = 1; CHMODE[1] = 0; fixPin(); colorChann();
-      {
-      if (350 < tp.x && tp.x < 535 && 245 < tp.y && tp.y < 495 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token ) {//CH1
-	CHMODE[1] = 1; CHMODE[0] = 0; fixPin(); colorChann();
+      }
+      if (350 < tp.x && tp.x < 535 && 245 < tp.y && tp.y < 495 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token ) {// CH1 TOUCH
+        CHMODE[1] = 1; CHMODE[0] = 0; fixPin(); colorChann();
       }
     }
     //ON-OFF TOUCH
     if (715 < tp.x && tp.x < 770 && 560 < tp.y && tp.y < 645 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token) {// CH0 ON
       if (CHMODE[0] == 1 && TMODE[0] == 0) {
-	digitalWrite(CH[0],HIGH); TMODE[0] = 1; PWMODE[0] = 255; fixPin(); colorOnoff();
+        digitalWrite(CH[0],HIGH); TMODE[0] = 1; PWMODE[0] = 255; fixPin(); colorOnoff();
       }
     }
     if (595 < tp.x && tp.x < 650 && 560 < tp.y && tp.y < 645 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token) {// CH0 OFF
@@ -94,7 +94,7 @@ void loop() {
     }
     if (465 < tp.x && tp.x < 530 && 560 < tp.y && tp.y < 645 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token) {// CH1 ON
       if (CHMODE[1] == 1 && TMODE[1] == 0) {
-	digitalWrite(CH[1],HIGH); TMODE[1] = 1; PWMODE[1] = 255; fixPin(); colorOnoff();
+        digitalWrite(CH[1],HIGH); TMODE[1] = 1; PWMODE[1] = 255; fixPin(); colorOnoff();
       }
     }
     if (345 < tp.x && tp.x < 410 && 560 < tp.y && tp.y < 645 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token) {// CH1 OFF
@@ -119,7 +119,7 @@ void loop() {
     if (tp.z > MINPRESS && tp.z < MAXPRESS) { screenTime = millis(); }
   }
   //SCREENSAVER
-  if (millis() - screenTime > DELAY_NOTOUCH && Token == 0) { CHMODE[0]= 0; CHMODE[1] = 0; fixPin(); drawLogo(); Token = 1; }
+  if (millis() - screenTime > DELAY_NOTOUCH && Token == 0) { CHMODE[0] = 0; CHMODE[1] = 0; fixPin(); drawLogo(); Token = 1; }
 }
 
 //FUNC
