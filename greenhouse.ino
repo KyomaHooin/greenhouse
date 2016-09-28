@@ -71,30 +71,31 @@ void loop() {
   }
   //SCREEN
   if ( millis() - screenTime > DELAY_PRESS ) {
-    //ScreenTouch coord.
-    tp = ts.getPoint();
+    tp = ts.getPoint();//ScreenTouch coord.
     // MENU
     if ( tp.z > MINPRESS && tp.z < MAXPRESS && Token ) { Token = 0; drawMenu(); menuTime = millis(); }
     //CHANNEL
     if (millis() - menuTime > DELAY_MENU) {
-      //CH0 TOUCH
-      if (595 < tp.x && tp.x < 800 && 245 < tp.y && tp.y < 495 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token ) {
+      if (595 < tp.x && tp.x < 800 && 245 < tp.y && tp.y < 495 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token ) {//CH0
         CHMODE[0] = 1; CHMODE[1] = 0; fixPin(); colorChann();
-      }
-      //CH1 TOUCH     
-      if (350 < tp.x && tp.x < 535 && 245 < tp.y && tp.y < 495 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token ) {
-        CHMODE[1] = 1; CHMODE[0] = 0; fixPin(); colorChann();
+      {
+      if (350 < tp.x && tp.x < 535 && 245 < tp.y && tp.y < 495 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token ) {//CH1
+	CHMODE[1] = 1; CHMODE[0] = 0; fixPin(); colorChann();
       }
     }
     //ON-OFF TOUCH
     if (715 < tp.x && tp.x < 770 && 560 < tp.y && tp.y < 645 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token) {// CH0 ON
-      if (CHMODE[0] == 1 && TMODE[0] == 0) { digitalWrite(CH[0],HIGH); TMODE[0] = 1; PWMODE[0] = 255; fixPin(); colorOnoff(); }
+      if (CHMODE[0] == 1 && TMODE[0] == 0) {
+	digitalWrite(CH[0],HIGH); TMODE[0] = 1; PWMODE[0] = 255; fixPin(); colorOnoff();
+      }
     }
     if (595 < tp.x && tp.x < 650 && 560 < tp.y && tp.y < 645 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token) {// CH0 OFF
       if (CHMODE[0] == 1 && TMODE[0] == 1) { digitalWrite(CH[0],LOW); TMODE[0] = 0; fixPin(); colorOnoff(); }
     }
     if (465 < tp.x && tp.x < 530 && 560 < tp.y && tp.y < 645 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token) {// CH1 ON
-      if (CHMODE[1] == 1 && TMODE[1] == 0) { digitalWrite(CH[1],HIGH); TMODE[1] = 1; PWMODE[1] = 255; fixPin(); colorOnoff(); }
+      if (CHMODE[1] == 1 && TMODE[1] == 0) {
+	digitalWrite(CH[1],HIGH); TMODE[1] = 1; PWMODE[1] = 255; fixPin(); colorOnoff();
+      }
     }
     if (345 < tp.x && tp.x < 410 && 560 < tp.y && tp.y < 645 && tp.z > MINPRESS && tp.z < MAXPRESS && !Token) {// CH1 OFF
       if (CHMODE[1] == 1 && TMODE[1] == 1) { digitalWrite(CH[1],LOW); TMODE[1] = 0; fixPin(); colorOnoff(); }
@@ -132,22 +133,22 @@ void drawMenu() {
 }
 //Fader bar
 void drawFader() {
- tft.drawRect(65,170,40,40, WHITE);// [-]
- tft.drawRect(66,171,38,38, WHITE);
- tft.drawRect(215,170,40,40, WHITE);// [+]
- tft.drawRect(216,171,38,38, WHITE);
- tft.setCursor(80, 183);
- tft.setTextSize(2);
- tft.println("-");
- tft.setCursor(230, 183);
- tft.setTextSize(2);
- tft.println("+");
- tft.drawRect(115,190,90,2, WHITE);// line
- tft.drawRect(115,186,2,10, WHITE);// 1st
- tft.drawRect(137,186,2,10, WHITE);// 2nd
- tft.drawRect(159,186,2,10, WHITE);// 3rd
- tft.drawRect(181,186,2,10, WHITE);// 4th
- tft.drawRect(204,186,2,10, WHITE);// 5th
+  tft.drawRect(65,170,40,40, WHITE);// [-]
+  tft.drawRect(66,171,38,38, WHITE);
+  tft.drawRect(215,170,40,40, WHITE);// [+]
+  tft.drawRect(216,171,38,38, WHITE);
+  tft.setCursor(80, 183);
+  tft.setTextSize(2);
+  tft.println("-");
+  tft.setCursor(230, 183);
+  tft.setTextSize(2);
+  tft.println("+");
+  tft.drawRect(115,190,90,2, WHITE);// line
+  tft.drawRect(115,186,2,10, WHITE);// 1st
+  tft.drawRect(137,186,2,10, WHITE);// 2nd
+  tft.drawRect(159,186,2,10, WHITE);// 3rd
+  tft.drawRect(181,186,2,10, WHITE);// 4th
+  tft.drawRect(204,186,2,10, WHITE);// 5th
 }
 //90x90 square + 10px spacing
 void colorChann() {
