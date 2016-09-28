@@ -48,14 +48,12 @@ IRF540N:
 FILE
 
 <pre>
- mcufriend_kbv - TFT 2.4 LCD library by David Prentice.
-   TouchScreen - TouchScreen libraary by Adafruit.
-  adafruit_GFX - Graphic library by Adarfruit.
+ mcufriend_kbv/ - TFT 2.4 LCD library by David Prentice.
+   TouchScreen/ - TouchScreen libraary by Adafruit.
+  adafruit_GFX/ - Graphic library by Adarfruit.
 
-greenhouse.ino - Main program.
-     touch.ino - TP223 test code.
-       fet.ino - MOSFET test code.
-       pwm.ino - Soft PWM test code
+ greenhouse.ino - Main program.
+     openhard.h - PROGMEM logo.
 </pre>
 
 CONTACT
