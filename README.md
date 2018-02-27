@@ -48,9 +48,9 @@ IRF540N:
 FILE
 
 <pre>
- mcufriend_kbv/ - TFT 2.4 LCD library by David Prentice.
-   TouchScreen/ - TouchScreen libraary by Adafruit.
-  adafruit_GFX/ - Graphic library by Adarfruit.
+ mcufriend_kbv.zip - TFT 2.4 LCD library by David Prentice.
+   TouchScreen.zip - TouchScreen libraary by Adafruit.
+  adafruit_GFX.zip - Graphic library by Adarfruit.
 
  greenhouse.ino - Main program.
      openhard.h - PROGMEM logo.
