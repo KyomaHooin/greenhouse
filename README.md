@@ -56,7 +56,7 @@ FILE
      openhard.h - PROGMEM logo.
 </pre>
 
-CONTACT
+SOURCE
 
-Source: https://github.com/KyomaHooin/greenhouse
+https://github.com/KyomaHooin/greenhouse
 
